@@ -15,6 +15,11 @@ public interface IBenchmark {
 	 * Initialize the benchmark
 	 * @param max the maximum number of operations
 	 */
+	
+	public String[] getFileSizes();
+	
+	public String[] getBufferSizes();
+	
 	public void init(int max);
 	/**
 	 * Run the benchmark
