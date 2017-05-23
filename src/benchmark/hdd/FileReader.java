@@ -127,10 +127,12 @@ public class FileReader {
 	 */
 	public long readNio(String fileName, int myBufferSize) throws IOException {
 		FileChannel fChannel = null;
+		FileInputStream fileInputStream=null;
 		long totalBytes = 0;
 
 		try {
-			fChannel = new FileInputStream(fileName).getChannel();
+			fileInputStream = new FileInputStream(fileName);
+			fChannel = fileInputStream.getChannel();
 			ByteBuffer buffer = ByteBuffer.allocateDirect(myBufferSize);
 			int read;
 			
@@ -142,6 +144,7 @@ public class FileReader {
 		} finally {
 			if (fChannel != null) {
 				fChannel.close();
+				fileInputStream.close();
 			}
 		}
 	}

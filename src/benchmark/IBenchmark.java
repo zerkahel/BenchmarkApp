@@ -21,6 +21,7 @@ public interface IBenchmark {
 	/**
 	 * Run the benchmark
 	 */
+	public void run(Object... opt);
 	public void run();
 	/**
 	 * Run the benchmark , time it and log the results

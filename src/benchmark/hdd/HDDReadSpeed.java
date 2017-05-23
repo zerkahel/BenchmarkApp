@@ -29,21 +29,15 @@ public class HDDReadSpeed implements IBenchmark {
 	public void writeNewRandFile(String fn1, String fn2){
 		try{
 			File f = new File(fn1);
-			File f2 = new File(fn2);
-			if(f.exists() && f2.exists())
-				return;
-			FileWriter fw = new FileWriter(fn1);
-			FileWriter fw2 = new FileWriter(fn2);			
+			FileWriter fw = new FileWriter(fn1);			
 
 			Random rd = new Random();
 			for(int i=0;i<210000000;++i) {
 				String tmp;
 				tmp = new Integer(rd.nextInt()).toString();
 				fw.write(tmp);
-				fw2.write(tmp);
 			}
 			fw.close();
-			fw2.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -51,9 +45,14 @@ public class HDDReadSpeed implements IBenchmark {
 	}
 
 	public void run(Object... options) {
-
+		/***
+		 * important:
+		 * [0] -> type ( stream or nio)
+		 * [1] -> buffersize
+		 */
 		try {
 			ReadOptions option = (ReadOptions) options[0];
+			int buffsize = (int)options[1];
 			FileReader reader = new FileReader();
 
 			String sourcePath = "somefile.dat";
@@ -62,15 +61,10 @@ public class HDDReadSpeed implements IBenchmark {
 			case STREAM:
 				writeNewRandFile(sourcePath,sourcePath2);			
 				reader.compareWithBufferSize(sourcePath, sourcePath2, 1024);
-				reader.compareWithBufferSize(sourcePath, sourcePath2, 64*1024);
-				reader.compareWithBufferSize(sourcePath, sourcePath2, 4*1024*1024);
-
 				break;
 			case NIO:
 				writeNewRandFile(sourcePath,sourcePath2);
-				reader.compareNIO(sourcePath, sourcePath2, 1024);
-				reader.compareNIO(sourcePath, sourcePath2, 64*1024);
-				reader.compareNIO(sourcePath, sourcePath2, 4*1024*1024);
+				reader.readNio(sourcePath, buffsize);
 				break;
 			}
 		} catch (IOException e) {

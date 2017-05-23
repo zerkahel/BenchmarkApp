@@ -16,7 +16,10 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import benchmark.BenchmarkControl;
+import benchmark.BenchmarkBusyException;
+import benchmark.BenchmarkControlSingleton;
+import benchmark.hdd.*;
+import benchmark.hdd.HDDReadSpeed.ReadOptions;
 
 public class TabbedPaneDemo extends JPanel implements ActionListener{
 	/**
@@ -124,7 +127,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		textPanel.add(new JLabel("\n"));
 		
 		textPanel.add(new JLabel("Buffer Size: "));
-		String[] buffersizes = BenchmarkControl.getBufferSizes(); //getFileSizes, getBuffersizes
+		String[] buffersizes = BenchmarkControlSingleton.getBufferSizes(); //getFileSizes, getBuffersizes
 		final JComboBox<String> buffsizeCB = new JComboBox<String>(buffersizes);
 	    buffsizeCB.setMaximumSize( buffsizeCB.getPreferredSize() );
 	    buffsizeCB.setVisible(true);
@@ -133,7 +136,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		textPanel.add(new JLabel("\n"));
 		
 		textPanel.add(new JLabel("File Size: "));
-		String[] filesizes = BenchmarkControl.getFileSizes();
+		String[] filesizes = BenchmarkControlSingleton.getFileSizes();
 		final JComboBox<String> filesizeCB = new JComboBox<String>(filesizes);
 		filesizeCB.setMaximumSize( filesizeCB.getPreferredSize() );
 	    filesizeCB.setVisible(true);
@@ -147,14 +150,14 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		    	drawAverageSpeeds("0.000 MB/S");
 		    	drawMinimumSpeeds("0.000 MB/S");
 		    	String choice = (String)buffsizeCB.getSelectedItem();
-		    	if(choice.equals("CHOICE 3")){
-		    		addSeqChartData(3,4);
-		    		addSeqChartData(5,6);
-		    	}
-		    	else{
-		    	addSeqChartData(6,6);
-		    	addSeqChartData(7,6);
-		    	}
+		    	HDDReadSpeed hrs = new HDDReadSpeed();
+		    	BenchmarkControlSingleton bc = BenchmarkControlSingleton.getInstance();
+		    	try {
+					bc.runBenchmark(hrs,ReadOptions.NIO,BenchmarkControlSingleton.sizeStringToInt(choice));
+				} catch (BenchmarkBusyException e) {
+					// TODO Print a message saying the user should wait until current test is finished or cancel the test
+					e.printStackTrace();
+				}
 		    } 
 		});
 		panel.add(mySeqChart());

@@ -67,4 +67,10 @@ public class DummyBenchmark implements IBenchmark {
 		hws.run("fs",true);
 		hws.run("fb",true);
 	}
+
+	@Override
+	public void run(Object... opt) {
+		// TODO Auto-generated method stub
+		
+	}
 }
