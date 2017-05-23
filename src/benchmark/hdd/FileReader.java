@@ -49,7 +49,7 @@ public class FileReader {
 		int myBufferSize = minBufSize;
 		while (myBufferSize <= maxBufSize) {
 			timer.start();
-			long totalBytes = readNio(fileName, myBufferSize);
+			long totalBytes = 0;//readNio(fileName, myBufferSize);
 
 			if (totalBytes != -1) {
 				printStats(fileName, totalBytes, myBufferSize);
@@ -125,20 +125,34 @@ public class FileReader {
 	/**
 	 * Read given file using a file channel (nio)	
 	 */
-	public long readNio(String fileName, int myBufferSize) throws IOException {
+	public long readNio(String fileName, int myBufferSize,UpdateChart uc) throws IOException {
 		FileChannel fChannel = null;
 		FileInputStream fileInputStream=null;
 		long totalBytes = 0;
-
+		Timer tm = new Timer();
+		double mseconds = 1;
+		double megabytes = 1;
+		long time=0;
+		double rate = (megabytes) / mseconds * 1000;
 		try {
 			fileInputStream = new FileInputStream(fileName);
 			fChannel = fileInputStream.getChannel();
 			ByteBuffer buffer = ByteBuffer.allocateDirect(myBufferSize);
 			int read;
-			
+			tm.start();
+			long updateGraphCounter=0;
+			final long modmask=0x0000000000000007;
 			while ((read = fChannel.read(buffer)) != -1) {
+				if((updateGraphCounter&modmask)==0){
+					time=tm.pause();
+					mseconds = time / 1000000d;
+					megabytes = totalBytes / 1024 / 1024;
+					uc.updateData((int)megabytes, (int)(mseconds*1000));
+					tm.resume();
+				}
 				buffer.clear();
 				totalBytes += read;
+				updateGraphCounter++;
 			}
 			return totalBytes;
 		} finally {

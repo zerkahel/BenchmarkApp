@@ -12,6 +12,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -153,14 +154,23 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		    	HDDReadSpeed hrs = new HDDReadSpeed();
 		    	BenchmarkControlSingleton bc = BenchmarkControlSingleton.getInstance();
 		    	try {
-					bc.runBenchmark(hrs,ReadOptions.NIO,BenchmarkControlSingleton.sizeStringToInt(choice));
+					bc.runBenchmark(hrs,ReadOptions.NIO,BenchmarkControlSingleton.sizeStringToInt(choice),new UpdateChart(){
+						XYSeries seq = new XYSeries("XYGraphic");
+						@Override
+						public void updateData(int x,int y){
+							addSeqChartData(x,y);
+							//seq.
+						}
+					});
 				} catch (BenchmarkBusyException e) {
 					// TODO Print a message saying the user should wait until current test is finished or cancel the test
 					e.printStackTrace();
 				}
 		    } 
 		});
-		panel.add(mySeqChart());
+		ChartPanel cp = mySeqChart();
+		//((XYPlot)mySeqChart().getChart().getPlot()).getRenderer().setSeriesPaint();
+		panel.add(cp);
 		
 		return panel;
 	}

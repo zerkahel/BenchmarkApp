@@ -26,9 +26,11 @@ public class HDDReadSpeed implements IBenchmark {
 	public void run() {
 	}
 
-	public void writeNewRandFile(String fn1, String fn2){
+	public void writeNewRandFile(String fn1){
 		try{
 			File f = new File(fn1);
+			if(f.exists())
+				return;
 			FileWriter fw = new FileWriter(fn1);			
 
 			Random rd = new Random();
@@ -49,22 +51,23 @@ public class HDDReadSpeed implements IBenchmark {
 		 * important:
 		 * [0] -> type ( stream or nio)
 		 * [1] -> buffersize
+		 * [3] -> update chart callback
 		 */
 		try {
 			ReadOptions option = (ReadOptions) options[0];
 			int buffsize = (int)options[1];
+			UpdateChart uc = (UpdateChart)options[2];
 			FileReader reader = new FileReader();
 
 			String sourcePath = "somefile.dat";
 			String sourcePath2 = "someotherfile.dat";
 			switch (option) {
 			case STREAM:
-				writeNewRandFile(sourcePath,sourcePath2);			
-				reader.compareWithBufferSize(sourcePath, sourcePath2, 1024);
+				writeNewRandFile(sourcePath);			
 				break;
 			case NIO:
-				writeNewRandFile(sourcePath,sourcePath2);
-				reader.readNio(sourcePath, buffsize);
+				writeNewRandFile(sourcePath);
+				reader.readNio(sourcePath, buffsize,uc);
 				break;
 			}
 		} catch (IOException e) {
