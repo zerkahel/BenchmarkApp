@@ -16,9 +16,6 @@ public interface IBenchmark {
 	 * @param max the maximum number of operations
 	 */
 	
-	public String[] getFileSizes();
-	
-	public String[] getBufferSizes();
 	
 	public void init(int max);
 	/**

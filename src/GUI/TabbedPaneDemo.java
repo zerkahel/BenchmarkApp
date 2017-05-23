@@ -16,6 +16,8 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import benchmark.BenchmarkControl;
+
 public class TabbedPaneDemo extends JPanel implements ActionListener{
 	/**
 	 * 
@@ -122,7 +124,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		textPanel.add(new JLabel("\n"));
 		
 		textPanel.add(new JLabel("Buffer Size: "));
-		String[] buffersizes = { "CHOICE 1","CHOICE 2", "CHOICE 3","CHOICE 4","CHOICE 5","CHOICE 6"}; //getFileSizes, getBuffersizes
+		String[] buffersizes = BenchmarkControl.getBufferSizes(); //getFileSizes, getBuffersizes
 		final JComboBox<String> buffsizeCB = new JComboBox<String>(buffersizes);
 	    buffsizeCB.setMaximumSize( buffsizeCB.getPreferredSize() );
 	    buffsizeCB.setVisible(true);
@@ -131,7 +133,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		textPanel.add(new JLabel("\n"));
 		
 		textPanel.add(new JLabel("File Size: "));
-		String[] filesizes = { "CHOICE 1","CHOICE 2", "CHOICE 3","CHOICE 4","CHOICE 5"};
+		String[] filesizes = BenchmarkControl.getFileSizes();
 		final JComboBox<String> filesizeCB = new JComboBox<String>(filesizes);
 		filesizeCB.setMaximumSize( filesizeCB.getPreferredSize() );
 	    filesizeCB.setVisible(true);

@@ -6,6 +6,7 @@ package benchmark;
 import benchmark.hdd.HDDRandomAccess;
 import benchmark.hdd.HDDReadSpeed;
 import benchmark.hdd.HDDReadSpeed.ReadOptions;
+import benchmark.hdd.HDDWriteSpeed;
 import logging.ILogger;
 import timing.ITimer;
 /**
@@ -47,7 +48,7 @@ public class DummyBenchmark implements IBenchmark {
 
 	public static void main(String[] args) {
 
-		HDDReadSpeed hrs = new HDDReadSpeed();		
+/*		HDDReadSpeed hrs = new HDDReadSpeed();		
 		hrs.run(ReadOptions.STREAM);
 		hrs.run(ReadOptions.NIO);
 		
@@ -60,6 +61,10 @@ public class DummyBenchmark implements IBenchmark {
 		hra.run("w","fs",4*1024);
 		System.out.println(hra.getResult());
 		hra.run("w","ft",4*1024);
-		System.out.println(hra.getResult());
+		System.out.println(hra.getResult());*/
+		
+		HDDWriteSpeed hws = new HDDWriteSpeed();
+		hws.run("fs",true);
+		hws.run("fb",true);
 	}
 }
