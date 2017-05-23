@@ -12,7 +12,7 @@ tempBenchData
 .mtj.tmp/
 
 # Package Files #
-*.jar
+#*.jar needed for dependencies
 *.war
 *.ear
 *.zip

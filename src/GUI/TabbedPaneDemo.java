@@ -159,7 +159,6 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 						@Override
 						public void updateData(int x,int y){
 							addSeqChartData(x,y);
-							//seq.
 						}
 					});
 				} catch (BenchmarkBusyException e) {
@@ -169,7 +168,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		    } 
 		});
 		ChartPanel cp = mySeqChart();
-		//((XYPlot)mySeqChart().getChart().getPlot()).getRenderer().setSeriesPaint();
+		((XYPlot)cp.getChart().getPlot()).getRenderer().setSeriesPaint(0,Color.GREEN);
 		panel.add(cp);
 		
 		return panel;

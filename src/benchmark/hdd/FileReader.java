@@ -133,7 +133,6 @@ public class FileReader {
 		double mseconds = 1;
 		double megabytes = 1;
 		long time=0;
-		double rate = (megabytes) / mseconds * 1000;
 		try {
 			fileInputStream = new FileInputStream(fileName);
 			fChannel = fileInputStream.getChannel();
@@ -144,9 +143,9 @@ public class FileReader {
 			final long modmask=0x0000000000000007;
 			while ((read = fChannel.read(buffer)) != -1) {
 				if((updateGraphCounter&modmask)==0){
-					time=tm.pause();
+					time=tm.pause() - time;
 					mseconds = time / 1000000d;
-					megabytes = totalBytes / 1024 / 1024;
+					megabytes = (totalBytes / 1024 / 1024) - megabytes;
 					uc.updateData((int)megabytes, (int)(mseconds*1000));
 					tm.resume();
 				}
