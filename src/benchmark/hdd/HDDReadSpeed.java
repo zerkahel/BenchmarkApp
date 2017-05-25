@@ -34,7 +34,7 @@ public class HDDReadSpeed implements IBenchmark {
 			FileWriter fw = new FileWriter(fn1);			
 
 			Random rd = new Random();
-			for(int i=0;i<210000000;++i) {
+			for(int i=0;i<310000000;++i) {
 				String tmp;
 				tmp = new Integer(rd.nextInt()).toString();
 				fw.write(tmp);

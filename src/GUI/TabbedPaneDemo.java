@@ -155,10 +155,26 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		    	BenchmarkControlSingleton bc = BenchmarkControlSingleton.getInstance();
 		    	try {
 					bc.runBenchmark(hrs,ReadOptions.NIO,BenchmarkControlSingleton.sizeStringToInt(choice),new UpdateChart(){
-						XYSeries seq = new XYSeries("XYGraphic");
+			    		XYSeries seq = new XYSeries("XYGraphic");
+			    		private double min=Double.MAX_VALUE,avg,avgcnt,max;
 						@Override
-						public void updateData(int x,int y){
-							addSeqChartData(x,y);
+						public void updateData(double x,double y){
+							addSeqChartData(y,x);
+							avg+=x;
+							avgcnt++;
+							if(x<min){
+								drawMinimumSpeeds(x + "MB/s");
+								min=x;
+							}else if(x>max){
+								drawMaximumSpeeds(x + "MB/s");
+								max=x;
+							}
+							updateAverage();
+						}
+						public void updateAverage(){
+							if(avgcnt>0){
+								drawAverageSpeeds(avg/avgcnt + "MB/s");
+							}
 						}
 					});
 				} catch (BenchmarkBusyException e) {
@@ -168,7 +184,6 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		    } 
 		});
 		ChartPanel cp = mySeqChart();
-		((XYPlot)cp.getChart().getPlot()).getRenderer().setSeriesPaint(0,Color.GREEN);
 		panel.add(cp);
 		
 		return panel;
@@ -263,7 +278,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		Qseries.add(x,y);
 	}
 	
-	public void addSeqChartData(int x,int y){
+	public void addSeqChartData(double x,double y){
 		Seqseries.add(x,y);
 	}
 	public void addRandChartData(int x,int y){

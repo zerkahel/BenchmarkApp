@@ -139,14 +139,15 @@ public class FileReader {
 			ByteBuffer buffer = ByteBuffer.allocateDirect(myBufferSize);
 			int read;
 			tm.start();
-			long updateGraphCounter=0;
-			final long modmask=0x0000000000000007;
+			long updateGraphCounter=1;
+			final long modmask=0x00000000000000FF;
 			while ((read = fChannel.read(buffer)) != -1) {
 				if((updateGraphCounter&modmask)==0){
 					time=tm.pause() - time;
-					mseconds = time / 1000000d;
-					megabytes = (totalBytes / 1024 / 1024) - megabytes;
-					uc.updateData((int)megabytes, (int)(mseconds*1000));
+					mseconds = time / 1000000d; //time in miliseconds (nano/10^6
+					megabytes = (totalBytes / 1024) - megabytes;
+					System.out.println(megabytes/mseconds);
+					uc.updateData(megabytes/mseconds,updateGraphCounter);
 					tm.resume();
 				}
 				buffer.clear();
