@@ -77,4 +77,8 @@ public class BenchmarkControlSingleton {
 		cthread = new SideThread(testType,opt);
 		cthread.start();
 	}
+	
+	public boolean busyBench(){
+		return cthread.isAlive();
+	}
 }

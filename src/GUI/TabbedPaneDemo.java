@@ -37,7 +37,6 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 	static JLabel randlabel2;
 	static JLabel randlabel3;
 	static int i=0;
-	static XYSeries Qseries = new XYSeries("XYGraph");
 	static XYSeries Randseries= new XYSeries("XYGraphic");
 	private int ourHeight;
 	private int ourWidth;
@@ -99,16 +98,39 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 
 		panel.add(startButton,BorderLayout.SOUTH);
 		panel.add(textPanel,BorderLayout.EAST);
+		
+		final QuickChart qc = new QuickChart();
+		ChartPanel cp = qc.myQuickChart();
 
 		startButton.addActionListener(new ActionListener() {   //the functionality of the button
 			public void actionPerformed(ActionEvent e) { 
 				drawAverageSpeedq("0.000 MB/S");
 				drawMinimumSpeedq("0.000 MB/S");
-				addQuickChartData(3,4);
-				addQuickChartData(5,6);
+				HDDReadSpeed hrs = new HDDReadSpeed();
+				final HDDWriteSpeed hws = new HDDWriteSpeed();
+				final BenchmarkControlSingleton bc = BenchmarkControlSingleton.getInstance();
+				try {
+					bc.runBenchmark(hrs,ReadOptions.NIO,BenchmarkControlSingleton.sizeStringToInt("16K"),new QuickTabData(qc.dataset,"read",BenchmarkControlSingleton.sizeStringToInt("16K")));
+					Thread th = new Thread()
+			        {
+			            public void run() {
+			            	while(bc.busyBench()); //wait until current I/O operation finishes
+			            	try {
+								bc.runBenchmark(hws,"fb",true,BenchmarkControlSingleton.sizeStringToInt("16K"),BenchmarkControlSingleton.sizeStringToLong("2048M"),new QuickTabData(qc.dataset,"write",BenchmarkControlSingleton.sizeStringToInt("16K")));
+							} catch (BenchmarkBusyException e) {
+								e.printStackTrace();
+							}
+
+			            }
+			        };
+			        th.start();
+					
+				} catch (BenchmarkBusyException ex) {
+					System.err.println(ex.getMessage());
+				}
 			} 
 		});
-		panel.add(myQuickChart());
+		panel.add(cp);
 
 		return panel;
 	}
@@ -137,11 +159,11 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 
 		final JLabel fileszLB = new JLabel("File size:");
 		fileszLB.setVisible(false);
-		
+
 		final JComboBox<String> fileSizeCB = new JComboBox<String>(BenchmarkControlSingleton.getFileSizes());
 		fileSizeCB.setMaximumSize(fileSizeCB.getPreferredSize());
 		fileSizeCB.setVisible(false);
-		
+
 		textPanel.add(new JLabel("Operation: "));
 		String[] operations = {"read","write"};
 		final JComboBox<String> operationCB = new JComboBox<String>(operations);
@@ -163,15 +185,15 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 				}break;
 				}
 			}
-			
+
 		});
 		textPanel.add(operationCB);
 		textPanel.add(fileszLB);
 		textPanel.add(fileSizeCB);
-		
+
 		panel.add(startButton2,BorderLayout.SOUTH);
 		panel.add(textPanel,BorderLayout.EAST);
-		
+
 		final SeqChart sqc = new SeqChart();
 		ChartPanel cp = sqc.mySeqChart();
 		panel.add(cp);
@@ -237,24 +259,27 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		return panel;
 	}
 
-	public ChartPanel myQuickChart(){
-
-		// Add the series to your data set
+	class QuickChart{
 		XYSeriesCollection dataset = new XYSeriesCollection();
-		dataset.addSeries(Qseries);
+		JFreeChart chart;
+		public ChartPanel myQuickChart(){
 
-		// Generate the graph
-		JFreeChart chart = ChartFactory.createXYLineChart(
-				"XY Chart", // Title
-				"x-axis", // x-axis Label
-				"y-axis", // y-axis Label
-				dataset, // Dataset
-				PlotOrientation.VERTICAL, // Plot Orientation
-				true, // Show Legend
-				true, // Use tooltips
-				false // Configure chart to generate URLs?
-				);
-		return (new ChartPanel (chart));
+			// Add the series to your data set
+			dataset = new XYSeriesCollection();
+
+			// Generate the graph
+			chart = ChartFactory.createXYLineChart(
+					"XY Chart", // Title
+					"x-axis", // x-axis Label
+					"y-axis", // y-axis Label
+					dataset, // Dataset
+					PlotOrientation.VERTICAL, // Plot Orientation
+					true, // Show Legend
+					true, // Use tooltips
+					false // Configure chart to generate URLs?
+					);
+			return (new ChartPanel (chart));
+		}
 	}
 	class SeqChart{
 		XYSeriesCollection dataset = new XYSeriesCollection();
@@ -262,7 +287,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		public ChartPanel mySeqChart(){		
 
 			// Generate the graph
-			JFreeChart chart = ChartFactory.createXYLineChart(
+			chart = ChartFactory.createXYLineChart(
 					"I/O Speeds", // Title
 					"MB", // x-axis Label
 					"MB/s", // y-axis Label
@@ -294,8 +319,8 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		return (new ChartPanel (chart));
 	}
 
-	public void addQuickChartData(int x,int y){
-		Qseries.add(x,y);
+	public void addQuickChartData(XYSeries ser, int x,int y){
+		ser.add(x,y);
 	}
 
 	public void addSeqChartData(XYSeries ser,double x,double y){
@@ -387,7 +412,38 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 				drawAverageSpeeds(avg/avgcnt + "MB/s");
 			}
 		}
+	}
 
-
+	class QuickTabData implements UpdateChart {
+		private double min=Double.MAX_VALUE,avg,avgcnt,max;
+		private String operation;
+		private int bufferSize;
+		private XYSeries cser;
+		public QuickTabData(XYSeriesCollection xysc, String operation, int bufferSize){
+			int uniqName = xysc.getSeriesCount();
+			this.operation = operation;
+			this.bufferSize = bufferSize;
+			cser = new XYSeries(operation+bufferSize+"_"+uniqName);
+			xysc.addSeries(cser);
+		}
+		@Override
+		public void updateData(double x,double y){
+			addSeqChartData(cser,y,x);
+			avg+=x;
+			avgcnt++;
+			if(x<min){
+				drawMinimumSpeedq(x + "MB/s");
+				min=x;
+			}else if(x>max){
+				drawMaximumSpeedq(x + "MB/s");
+				max=x;
+			}
+			updateAverage();
+		}
+		public void updateAverage(){
+			if(avgcnt>0){
+				drawAverageSpeedq(avg/avgcnt + "MB/s");
+			}
+		}
 	}
 }
