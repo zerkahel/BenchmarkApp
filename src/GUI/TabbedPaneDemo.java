@@ -5,8 +5,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -39,6 +41,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 	static int i=0;
 	private int ourHeight;
 	private int ourWidth;
+	private DefaultTableModel model;
 
 	GridLayout experimentLayout = new GridLayout(0,2);
 
@@ -75,6 +78,10 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 				"Reads/Writes randomly files and measures speed");
 		tabbedPane.setMnemonicAt(2, KeyEvent.VK_3);
 
+		JComponent panel4 = TestHistoryTab();
+		tabbedPane.addTab("History of tests", null, panel4,
+				"Check to see all the tests you've run");
+		tabbedPane.setMnemonicAt(3, KeyEvent.VK_4);
 
 		//Add the tabbed pane to this panel.	
 		add(tabbedPane);
@@ -162,6 +169,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		final JComboBox<String> fileSizeCB = new JComboBox<String>(BenchmarkControlSingleton.getFileSizes());
 		fileSizeCB.setMaximumSize(fileSizeCB.getPreferredSize());
 		fileSizeCB.setVisible(false);
+		textPanel.add(new JLabel("\n"));
 
 		textPanel.add(new JLabel("Operation: "));
 		String[] operations = {"read","write"};
@@ -277,6 +285,22 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		panel.add(cp);
 
 		return panel;
+	}
+
+	protected JComponent TestHistoryTab(){
+		JPanel textPanel=new JPanel();   //texts
+		JPanel panel = new JPanel(new BorderLayout());
+		JTable table = new JTable(new DefaultTableModel(new Object[]{"Operation", "Average Speed","Maximum speed","Minimum speed"},0));
+		model = (DefaultTableModel) table.getModel();
+
+		JScrollPane tableContainer = new JScrollPane(table);
+		panel.add(tableContainer, BorderLayout.CENTER);
+
+		return panel;
+	}
+
+	public void addTableDataRow(String... strings){
+			model.addRow(strings);
 	}
 
 	class QuickChart{
@@ -407,11 +431,13 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		private double min=Double.MAX_VALUE,avg,avgcnt,max;
 		private String operation;
 		private int bufferSize;
+		private String opname;
 		private XYSeries cser;
 		public SeqTabData(XYSeriesCollection xysc, String operation, int bufferSize){
 			int uniqName = xysc.getSeriesCount();
 			this.operation = operation;
 			this.bufferSize = bufferSize;
+			this.opname = operation+bufferSize+"_"+uniqName;
 			cser = new XYSeries(operation+bufferSize+"_"+uniqName);
 			xysc.addSeries(cser);
 		}
@@ -434,6 +460,9 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 				drawAverageSpeeds(avg/avgcnt + "MB/s");
 			}
 		}
+		public void addToTableView(){
+			addTableDataRow(opname,seqlabel1.getText(),seqlabel2.getText(),seqlabel3.getText());
+		}
 	}
 
 	class QuickTabData implements UpdateChart {
@@ -441,10 +470,12 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		private String operation;
 		private int bufferSize;
 		private XYSeries cser;
+		private String opname;
 		public QuickTabData(XYSeriesCollection xysc, String operation, int bufferSize){
 			int uniqName = xysc.getSeriesCount();
 			this.operation = operation;
 			this.bufferSize = bufferSize;
+			this.opname = operation+bufferSize+"_"+uniqName;
 			cser = new XYSeries(operation+bufferSize+"_"+uniqName);
 			xysc.addSeries(cser);
 		}
@@ -467,16 +498,23 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 				drawAverageSpeedq(avg/avgcnt + "MB/s");
 			}
 		}
+		@Override
+		public void addToTableView() {
+			addTableDataRow(opname,quicklabel1.getText(),quicklabel2.getText(),quicklabel3.getText());
+			
+		}
 	}
 	class RandTabData implements UpdateChart {
 		private double min=Double.MAX_VALUE,avg,avgcnt,max;
 		private String operation;
 		private int bufferSize;
+		private String opname;
 		private XYSeries cser;
 		public RandTabData(XYSeriesCollection xysc, String operation, int bufferSize){
 			int uniqName = xysc.getSeriesCount();
 			this.operation = operation;
 			this.bufferSize = bufferSize;
+			this.opname = operation+"_rand_"+bufferSize+"_"+uniqName;
 			cser = new XYSeries(operation+bufferSize+"_"+uniqName);
 			xysc.addSeries(cser);
 		}
@@ -498,6 +536,10 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 			if(avgcnt>0){
 				drawAverageSpeedr(avg/avgcnt + "MB/s");
 			}
+		}
+		@Override
+		public void addToTableView() {
+			addTableDataRow(opname,randlabel1.getText(),randlabel2.getText(),randlabel3.getText());
 		}
 	}
 }

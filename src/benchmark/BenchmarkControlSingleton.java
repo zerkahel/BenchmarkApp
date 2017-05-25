@@ -1,5 +1,7 @@
 package benchmark;
 
+import GUI.UpdateChart;
+
 class SideThread extends Thread{
 	private IBenchmark ttype;
 	Object[] bopt;
@@ -9,6 +11,11 @@ class SideThread extends Thread{
 	}
 	public void run(){
 		ttype.run(bopt);
+		for(Object obj : bopt) {
+			if(obj instanceof UpdateChart){
+				((UpdateChart) obj).addToTableView();
+			}
+		}
 	}
 }
 
