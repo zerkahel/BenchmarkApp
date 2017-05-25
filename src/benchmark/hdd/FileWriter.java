@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Random;
@@ -135,8 +136,7 @@ public class FileWriter {
 	public void writeWithBufferSize(String fileName, int myBufferSize,
 			long fileSize, boolean clean, UpdateChart uc) throws IOException {
 
-		File folderPath = new File(fileName.substring(0,
-				fileName.lastIndexOf(File.separator)));
+		File folderPath = new File(fileName.substring(0,fileName.lastIndexOf('/')));
 
 		// create folder path to benchmark output
 		if (!folderPath.isDirectory())

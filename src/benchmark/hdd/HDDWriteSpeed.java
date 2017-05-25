@@ -37,7 +37,7 @@ public class HDDWriteSpeed implements IBenchmark {
 		//update chart callback, as dirty as they come
 		UpdateChart uc = (UpdateChart)options[4];
 
-		String prefix = "tempBenchData/data";
+		String prefix = "tempBenchData//data";
 		String suffix = ".dat";
 		int startIndex = 0;
 		int endIndex = 8;
