@@ -5,7 +5,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -300,7 +304,22 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 	}
 
 	public void addTableDataRow(String... strings){
-			model.addRow(strings);
+		try{
+			DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH");
+			Date date = new Date();
+			PrintWriter pw = new PrintWriter("results"+"_"+dateFormat.format(date)+".txt");
+			for(int i=0;i<model.getRowCount();++i){
+				for(int j=0;j<model.getColumnCount();++j){
+					pw.print(model.getValueAt(i, j));
+					pw.print(" ");
+				}
+				pw.println();
+			}
+			pw.close();
+		}catch(Exception ex) {
+			System.out.println(ex.getMessage());
+		}
+		model.addRow(strings);
 	}
 
 	class QuickChart{
@@ -364,15 +383,18 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 					);
 			return (new ChartPanel (chart));
 		}
+		public void addSeqChartData(XYSeries ser,double x,double y){
+			ser.add(x,y);
+		}
 	}
 	public void addQuickChartData(XYSeries ser, double x,double y){
 		ser.add(x,y);
 	}
 
-	public void addSeqChartData(XYSeries ser,double x,double y){
+	public void addRandChartData(XYSeries ser,double x,double y){
 		ser.add(x,y);
 	}
-	public void addRandChartData(XYSeries ser,double x,double y){
+	public void addSeqChartData(XYSeries ser,double x,double y){
 		ser.add(x,y);
 	}
 
