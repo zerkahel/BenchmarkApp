@@ -18,7 +18,7 @@ public class BenchmarkControlSingleton {
 	private static BenchmarkControlSingleton instance=null;
 	private SideThread cthread=null;
 	public static String[] getFileSizes(){
-		String[] opt = {"16M","256M","4096M"};
+		String[] opt = {"1024M","2048M","4096M"};
 		return opt;
 	}
 
@@ -40,6 +40,21 @@ public class BenchmarkControlSingleton {
 			break;
 		}
 		return Integer.parseInt(s.substring(0, s.length()-1))*mul;
+	}
+	
+	public static long sizeStringToLong(String s){
+		if(s.length()<1)
+			return 0;
+		long mul=0;
+		switch(s.charAt(s.length()-1)){
+		case 'M':
+			mul=1024*1024;//MB
+			break;
+		case 'K':
+			mul=1024;
+			break;
+		}
+		return Long.parseLong(s.substring(0, s.length()-1))*mul;
 	}
 	
 	public BenchmarkControlSingleton(){

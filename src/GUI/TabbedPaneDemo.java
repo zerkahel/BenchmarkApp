@@ -135,13 +135,40 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 
 		textPanel.add(new JLabel("\n"));
 
+		final JLabel fileszLB = new JLabel("File size:");
+		fileszLB.setVisible(false);
+		
+		final JComboBox<String> fileSizeCB = new JComboBox<String>(BenchmarkControlSingleton.getFileSizes());
+		fileSizeCB.setMaximumSize(fileSizeCB.getPreferredSize());
+		fileSizeCB.setVisible(false);
+		
 		textPanel.add(new JLabel("Operation: "));
 		String[] operations = {"read","write"};
 		final JComboBox<String> operationCB = new JComboBox<String>(operations);
 		operationCB.setMaximumSize( operationCB.getPreferredSize() );
 		operationCB.setVisible(true);
-		textPanel.add(operationCB);
+		operationCB.addActionListener(new ActionListener() {
 
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String oper = (String) operationCB.getSelectedItem();
+				switch(oper) {
+				case "read":{
+					fileszLB.setVisible(false);
+					fileSizeCB.setVisible(false);
+				}break;
+				case "write":{
+					fileszLB.setVisible(true);
+					fileSizeCB.setVisible(true);
+				}break;
+				}
+			}
+			
+		});
+		textPanel.add(operationCB);
+		textPanel.add(fileszLB);
+		textPanel.add(fileSizeCB);
+		
 		panel.add(startButton2,BorderLayout.SOUTH);
 		panel.add(textPanel,BorderLayout.EAST);
 		
@@ -155,6 +182,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 				drawMinimumSpeeds("0.000 MB/S");
 				String choice = (String)buffsizeCB.getSelectedItem();
 				String op = (String)operationCB.getSelectedItem();
+				String fileSz = (String)fileSizeCB.getSelectedItem();
 				switch(op) {
 				case "read":{
 					HDDReadSpeed hrs = new HDDReadSpeed();
@@ -166,10 +194,10 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 					}
 				}break;
 				case "write":{
-					HDDReadSpeed hrs = new HDDReadSpeed();
+					HDDWriteSpeed hws = new HDDWriteSpeed();
 					BenchmarkControlSingleton bc = BenchmarkControlSingleton.getInstance();
 					try {
-						bc.runBenchmark(hrs,ReadOptions.NIO,BenchmarkControlSingleton.sizeStringToInt(choice),new SeqTabData(sqc.dataset,"read",BenchmarkControlSingleton.sizeStringToInt(choice)));
+						bc.runBenchmark(hws,"fb",true,BenchmarkControlSingleton.sizeStringToInt(choice),BenchmarkControlSingleton.sizeStringToLong(fileSz),new SeqTabData(sqc.dataset,"write",BenchmarkControlSingleton.sizeStringToInt(choice)));
 					} catch (BenchmarkBusyException e) {
 						System.err.println(e.getMessage());
 					}

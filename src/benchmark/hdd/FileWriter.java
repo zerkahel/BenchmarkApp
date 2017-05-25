@@ -9,6 +9,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Random;
 
+import GUI.UpdateChart;
 import logging.TimeUnit;
 import timing.Timer;
 
@@ -126,6 +127,51 @@ public class FileWriter {
 			i++;
 		}		
 		printStats(fileName, fileSize, myBufferSize);
+
+		outputStream.close();
+		if(clean)
+			file.delete();
+	}
+	public void writeWithBufferSize(String fileName, int myBufferSize,
+			long fileSize, boolean clean, UpdateChart uc) throws IOException {
+
+		File folderPath = new File(fileName.substring(0,
+				fileName.lastIndexOf(File.separator)));
+
+		// create folder path to benchmark output
+		if (!folderPath.isDirectory())
+			folderPath.mkdirs();
+
+		final File file = new File(fileName);
+		// create stream writer with given buffer size
+		final BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file), myBufferSize);
+
+		byte[] buffer = new byte[myBufferSize];
+		long i = 0, toWrite = fileSize / myBufferSize;
+		Random rand = new Random();
+		long updateGraphCounter=1;
+		final long modmask=0x0000000000000FFF;
+		Timer tm = new Timer();
+		double mseconds = 1;
+		double megabytes = 1;
+		long totalBytes=0;
+		long time=0;
+		tm.start();
+		while (i < toWrite) {
+			if((updateGraphCounter&modmask)==0){
+				time=tm.pause() - time;
+				mseconds = time / 1000000d;
+				megabytes = (totalBytes / 1024) - megabytes;
+				uc.updateData(megabytes/mseconds,totalBytes/1024/1024);
+				tm.resume();
+			}
+			rand.nextBytes(buffer);
+			outputStream.write(buffer);
+			totalBytes+=myBufferSize;
+			updateGraphCounter++;
+			i++;
+		}		
+		//printStats(fileName, fileSize, myBufferSize);
 
 		outputStream.close();
 		if(clean)

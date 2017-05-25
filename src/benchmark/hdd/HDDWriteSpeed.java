@@ -2,6 +2,7 @@ package benchmark.hdd;
 
 import java.io.IOException;
 
+import GUI.UpdateChart;
 import benchmark.IBenchmark;
 import logging.ILogger;
 import timing.ITimer;
@@ -29,6 +30,12 @@ public class HDDWriteSpeed implements IBenchmark {
 		String option = (String) options[0];
 		// true/false whether the written files should be deleted at the end
 		Boolean clean = (Boolean) options[1];
+		// buffer size
+		int bufferSz = (int) options[2];		
+		//file size
+		long fileSz = (long)options[3];
+		//update chart callback, as dirty as they come
+		UpdateChart uc = (UpdateChart)options[4];
 
 		String prefix = "tempBenchData/data";
 		String suffix = ".dat";
@@ -38,10 +45,9 @@ public class HDDWriteSpeed implements IBenchmark {
 		try {
 			if (option.equals("fs"))
 				writer.streamWriteFixedSize(prefix, suffix, startIndex,
-						endIndex, 256 * 1024 * 1024, clean);
+						endIndex, (int)fileSz, clean);
 			else if (option.equals("fb"))
-				writer.streamWriteFixedBuffer(prefix, suffix, startIndex,
-						endIndex, 4 * 1024, clean);
+				writer.writeWithBufferSize(prefix+"_fb_"+bufferSz+suffix, bufferSz, fileSz, clean, uc);
 			else
 				throw new IllegalArgumentException("Argument "
 						+ options[0].toString() + " is undefined");
