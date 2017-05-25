@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Random;
 
+import GUI.UpdateChart;
 import logging.ILogger;
 
 import timing.ITimer;
@@ -12,7 +13,7 @@ import benchmark.IBenchmark;
 
 public class HDDRandomAccess implements IBenchmark {
 
-	private final static String PATH = "somerandfile.dat";
+	private final static String PATH = "somefile.dat";
 	private String result;
 
 	public void initialize(long fileSizeInBytes) {
@@ -54,25 +55,27 @@ public class HDDRandomAccess implements IBenchmark {
 	public void run(Object... option) {
 		// ex. {"r", "fs", 4*1024}
 		Object[] param = (Object[]) option;
+		UpdateChart uc = (UpdateChart)param[3];
 
 		try {
 			// read benchmark
 			if(param[0] != null){
 				// buffer size given as parameter
 				int bufferSize = Integer.parseInt(String.valueOf(param[2]));
-
+				
 				// read a fixed size and measure time
 				if (String.valueOf(param[1]).toLowerCase().equals("fs")) {
 					int steps = 10000;
 					if (String.valueOf(param[0]).toLowerCase().equals("r")) {
 						long time = new RandomAccess().randomReadFixedSize(PATH,
-								bufferSize, steps,"r");
+								bufferSize, steps,"r",uc);
+
 						result = steps + " random reads in " + time + " ms ["
 								+ (steps * bufferSize / 1024 / 1024) + " MB] " + (steps * bufferSize / 1024 / 1024)/(time/1000) + "MB/s";
 					}
 					else if (String.valueOf(param[0]).toLowerCase().equals("w")) {
 						long time = new RandomAccess().randomReadFixedSize(PATH,
-								bufferSize, steps,"w");
+								bufferSize, steps,"w",uc);
 						result = steps + " random writes in " + time + " ms ["
 								+ (steps * bufferSize / 1024 / 1024) + " MB] " + (steps * bufferSize / 1024 / 1024)/(time/1000) + "MB/s";
 					}
@@ -132,7 +135,7 @@ public class HDDRandomAccess implements IBenchmark {
 		 * @throws IOException
 		 */
 		public long randomReadFixedSize(String filePath, int bufferSize,
-				int toRead,String operation) throws IOException {
+				int toRead,String operation,UpdateChart uc) throws IOException {
 			// file to read from
 			RandomAccessFile file = new RandomAccessFile(filePath, "rw");
 			// size of file
@@ -145,16 +148,33 @@ public class HDDRandomAccess implements IBenchmark {
 			Timer timer = new Timer();
 			int pos = 0;
 			Random rd = new Random();
+			long updateGraphCounter=1;
+			final long modmask=0x00000000000000FF;
+			Timer tm = new Timer();
+			double mseconds = 1;
+			double megabytes = 1;
+			long totalBytes=0;
+			long time=0;
+
 			byte[] data = new byte[bufferSize];
-			timer.start();
+			tm.start();
 			while (counter++ < toRead) {
 				rd.nextBytes(data);
 				// go to random spot in file
 				pos = rd.nextInt(fileSize);
+				totalBytes+=bufferSize;
+				if((updateGraphCounter&modmask)==0){
+					time=tm.pause() - time;
+					mseconds = time / 1000000d;
+					megabytes = (totalBytes / 1024) - megabytes;
+					uc.updateData(megabytes/mseconds,totalBytes/1024/1024);
+					tm.resume();
+				}
+				updateGraphCounter++;
 				if(operation == "r")
 					readFromFile(filePath,pos,bufferSize);			
 				else if (operation == "w")
-					writeToFile(filePath,new String(data),pos);	
+					writeToFile(filePath,data,pos);	
 			}
 
 			file.close();
@@ -197,8 +217,9 @@ public class HDDRandomAccess implements IBenchmark {
 				pos = rd.nextInt(fileSize);
 				if(operation == "r")
 					readFromFile(filePath,pos,bufferSize);			
-				else if (operation == "w")
-					writeToFile(filePath,new String(data),pos);	
+				else if (operation == "w"){
+					//writeToFile(filePath,new String(data),pos);	
+				}
 				time = System.nanoTime()-now;
 				counter++;
 			}
@@ -241,12 +262,12 @@ public class HDDRandomAccess implements IBenchmark {
 		 *            Start position in file
 		 * @throws IOException
 		 */
-		public void writeToFile(String filePath, String data, int position)
+		public void writeToFile(String filePath, byte[] data, int position)
 				throws IOException {
 
 			RandomAccessFile file = new RandomAccessFile(filePath, "rw");
 			file.seek(position);
-			file.write(data.getBytes());
+			file.write(data);
 			file.close();
 		}
 	}

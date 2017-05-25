@@ -37,7 +37,6 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 	static JLabel randlabel2;
 	static JLabel randlabel3;
 	static int i=0;
-	static XYSeries Randseries= new XYSeries("XYGraphic");
 	private int ourHeight;
 	private int ourWidth;
 
@@ -98,7 +97,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 
 		panel.add(startButton,BorderLayout.SOUTH);
 		panel.add(textPanel,BorderLayout.EAST);
-		
+
 		final QuickChart qc = new QuickChart();
 		ChartPanel cp = qc.myQuickChart();
 
@@ -112,19 +111,19 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 				try {
 					bc.runBenchmark(hrs,ReadOptions.NIO,BenchmarkControlSingleton.sizeStringToInt("16K"),new QuickTabData(qc.dataset,"read",BenchmarkControlSingleton.sizeStringToInt("16K")));
 					Thread th = new Thread()
-			        {
-			            public void run() {
-			            	while(bc.busyBench()); //wait until current I/O operation finishes
-			            	try {
+					{
+						public void run() {
+							while(bc.busyBench()); //wait until current I/O operation finishes
+							try {
 								bc.runBenchmark(hws,"fb",true,BenchmarkControlSingleton.sizeStringToInt("16K"),BenchmarkControlSingleton.sizeStringToLong("2048M"),new QuickTabData(qc.dataset,"write",BenchmarkControlSingleton.sizeStringToInt("16K")));
 							} catch (BenchmarkBusyException e) {
 								e.printStackTrace();
 							}
 
-			            }
-			        };
-			        th.start();
-					
+						}
+					};
+					th.start();
+
 				} catch (BenchmarkBusyException ex) {
 					System.err.println(ex.getMessage());
 				}
@@ -241,20 +240,41 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		textPanel.add(randlabel1);
 		textPanel.add(randlabel2);
 		textPanel.add(randlabel3);
-
-
+		
+		final RandTabChart rc = new RandTabChart();
+		ChartPanel cp = rc.myRandChart();
+				
 		panel.add(startButton,BorderLayout.SOUTH);
 		panel.add(textPanel,BorderLayout.EAST);
-
+		
 		startButton.addActionListener(new ActionListener() {   //the functionality of the button
 			public void actionPerformed(ActionEvent e) { 
-				drawAverageSpeedr("0.000 MB/S");
-				drawMinimumSpeedr("0.000 MB/S");
-				addRandChartData(3,4);
-				addRandChartData(5,6);
+				drawAverageSpeedq("0.000 MB/S");
+				drawMinimumSpeedq("0.000 MB/S");
+				final HDDRandomAccess hrs = new HDDRandomAccess();
+				final BenchmarkControlSingleton bc = BenchmarkControlSingleton.getInstance();
+				try {
+					bc.runBenchmark(hrs,"r","fs",BenchmarkControlSingleton.sizeStringToInt("32K"),new RandTabData(rc.dataset,"read",BenchmarkControlSingleton.sizeStringToInt("16K")));
+					Thread th = new Thread()
+					{
+						public void run() {
+							while(bc.busyBench()); //wait until current I/O operation finishes
+							try {
+								bc.runBenchmark(hrs,"w","fs",BenchmarkControlSingleton.sizeStringToInt("32K"),new RandTabData(rc.dataset,"write",BenchmarkControlSingleton.sizeStringToInt("16K")));
+							} catch (BenchmarkBusyException e) {
+								e.printStackTrace();
+							}
+
+						}
+					};
+					th.start();
+
+				} catch (BenchmarkBusyException ex) {
+					System.err.println(ex.getMessage());
+				}
 			} 
 		});
-		panel.add(myRandChart());
+		panel.add(cp);
 
 		return panel;
 	}
@@ -300,34 +320,36 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 			return (new ChartPanel (chart));
 		}
 	}
-	public ChartPanel myRandChart(){
+	class RandTabChart{
+		XYSeriesCollection dataset;
+		JFreeChart chart;
+		public ChartPanel myRandChart(){
 
-		XYSeriesCollection dataset = new XYSeriesCollection();
-		dataset.addSeries(Randseries);
+			dataset = new XYSeriesCollection();
 
-		// Generate the graph
-		JFreeChart chart = ChartFactory.createXYLineChart(
-				"XY Chart", // Title
-				"x-axis", // x-axis Label
-				"y-axis", // y-axis Label
-				dataset, // Dataset
-				PlotOrientation.VERTICAL, // Plot Orientation
-				true, // Show Legend
-				true, // Use tooltips
-				false // Configure chart to generate URLs?
-				);
-		return (new ChartPanel (chart));
+			// Generate the graph
+			chart = ChartFactory.createXYLineChart(
+					"XY Chart", // Title
+					"x-axis", // x-axis Label
+					"y-axis", // y-axis Label
+					dataset, // Dataset
+					PlotOrientation.VERTICAL, // Plot Orientation
+					true, // Show Legend
+					true, // Use tooltips
+					false // Configure chart to generate URLs?
+					);
+			return (new ChartPanel (chart));
+		}
 	}
-
-	public void addQuickChartData(XYSeries ser, int x,int y){
+	public void addQuickChartData(XYSeries ser, double x,double y){
 		ser.add(x,y);
 	}
 
 	public void addSeqChartData(XYSeries ser,double x,double y){
 		ser.add(x,y);
 	}
-	public void addRandChartData(int x,int y){
-		Randseries.add(x,y);
+	public void addRandChartData(XYSeries ser,double x,double y){
+		ser.add(x,y);
 	}
 
 	/** Returns an ImageIcon, or null if the path was invalid. */
@@ -428,7 +450,7 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		}
 		@Override
 		public void updateData(double x,double y){
-			addSeqChartData(cser,y,x);
+			addQuickChartData(cser,y,x);
 			avg+=x;
 			avgcnt++;
 			if(x<min){
@@ -443,6 +465,38 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 		public void updateAverage(){
 			if(avgcnt>0){
 				drawAverageSpeedq(avg/avgcnt + "MB/s");
+			}
+		}
+	}
+	class RandTabData implements UpdateChart {
+		private double min=Double.MAX_VALUE,avg,avgcnt,max;
+		private String operation;
+		private int bufferSize;
+		private XYSeries cser;
+		public RandTabData(XYSeriesCollection xysc, String operation, int bufferSize){
+			int uniqName = xysc.getSeriesCount();
+			this.operation = operation;
+			this.bufferSize = bufferSize;
+			cser = new XYSeries(operation+bufferSize+"_"+uniqName);
+			xysc.addSeries(cser);
+		}
+		@Override
+		public void updateData(double x,double y){
+			addRandChartData(cser,y,x);
+			avg+=x;
+			avgcnt++;
+			if(x<min){
+				drawMinimumSpeedr(x + "MB/s");
+				min=x;
+			}else if(x>max){
+				drawMaximumSpeedr(x + "MB/s");
+				max=x;
+			}
+			updateAverage();
+		}
+		public void updateAverage(){
+			if(avgcnt>0){
+				drawAverageSpeedr(avg/avgcnt + "MB/s");
 			}
 		}
 	}
