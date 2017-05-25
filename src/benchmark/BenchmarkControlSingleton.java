@@ -23,7 +23,7 @@ public class BenchmarkControlSingleton {
 	}
 
 	public static String[] getBufferSizes(){
-		String[] opt = {"4K","16K","512K"};
+		String[] opt = {"4K","16K","64K"};
 		return opt;
 	}
 	
@@ -47,15 +47,17 @@ public class BenchmarkControlSingleton {
 	}
 	
 	public static BenchmarkControlSingleton getInstance(){
-		if(instance==null)
-			return new BenchmarkControlSingleton();
+		if(instance==null){
+			instance = new BenchmarkControlSingleton();
+			return instance;
+		}
 		
 		return instance;
 	}
 	
 	public void runBenchmark(IBenchmark testType, Object... opt) throws BenchmarkBusyException{
 		if(cthread!=null && cthread.isAlive()==true)
-			throw new BenchmarkBusyException("Wait a sec");
+			throw new BenchmarkBusyException("Wait until the current I/O operation is finished");
 		
 		cthread = new SideThread(testType,opt);
 		cthread.start();

@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
 
+import GUI.UpdateChart;
 import timing.Timer;
 
 public class FileReader {
@@ -140,20 +141,20 @@ public class FileReader {
 			int read;
 			tm.start();
 			long updateGraphCounter=1;
-			final long modmask=0x00000000000000FF;
+			final long modmask=0x0000000000000FFF;
 			while ((read = fChannel.read(buffer)) != -1) {
 				if((updateGraphCounter&modmask)==0){
 					time=tm.pause() - time;
-					mseconds = time / 1000000d; //time in miliseconds (nano/10^6
+					mseconds = time / 1000000d;
 					megabytes = (totalBytes / 1024) - megabytes;
-					System.out.println(megabytes/mseconds);
-					uc.updateData(megabytes/mseconds,updateGraphCounter);
+					uc.updateData(megabytes/mseconds,totalBytes/1024/1024);
 					tm.resume();
 				}
 				buffer.clear();
 				totalBytes += read;
 				updateGraphCounter++;
 			}
+			uc.updateData(megabytes/mseconds,totalBytes/1024/1024);
 			return totalBytes;
 		} finally {
 			if (fChannel != null) {

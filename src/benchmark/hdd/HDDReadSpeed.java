@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
 
+import GUI.UpdateChart;
 import logging.ILogger;
 import logging.TimeUnit;
 import timing.ITimer;
