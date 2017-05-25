@@ -313,9 +313,9 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 
 			// Generate the graph
 			chart = ChartFactory.createXYLineChart(
-					"XY Chart", // Title
-					"x-axis", // x-axis Label
-					"y-axis", // y-axis Label
+					"I/O Speed", // Title
+					"MB", // x-axis Label
+					"MB/s", // y-axis Label
 					dataset, // Dataset
 					PlotOrientation.VERTICAL, // Plot Orientation
 					true, // Show Legend
@@ -353,9 +353,9 @@ public class TabbedPaneDemo extends JPanel implements ActionListener{
 
 			// Generate the graph
 			chart = ChartFactory.createXYLineChart(
-					"XY Chart", // Title
-					"x-axis", // x-axis Label
-					"y-axis", // y-axis Label
+					"I/O Operations", // Title
+					"MB", // x-axis Label
+					"MB/s", // y-axis Label
 					dataset, // Dataset
 					PlotOrientation.VERTICAL, // Plot Orientation
 					true, // Show Legend
